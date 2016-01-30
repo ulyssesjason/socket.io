@@ -1,6 +1,6 @@
 $(function() {
   var FADE_TIME = 150; // ms
-  var TYPING_TIMER_LENGTH = 400; // ms
+  var TYPING_TIMER_LENGTH = 1000; // ms
   var COLORS = [
     '#e21400', '#91580f', '#f8a700', '#f78b00',
     '#58dc00', '#287b00', '#a8f07a', '#4ae8c4',
@@ -97,6 +97,8 @@ $(function() {
       .append($usernameDiv, $messageBodyDiv);
 
     addMessageElement($messageDiv, options);
+
+    addNotification(data, options);
   }
 
   // Adds the visual chat typing message
@@ -142,6 +144,56 @@ $(function() {
       $messages.append($el);
     }
     $messages[0].scrollTop = $messages[0].scrollHeight;
+  }
+
+  window.addEventListener("load", function(){
+      if(Notification && Notification.permission !== "granted"){
+          Notification.requestPermission(function(status){
+              if(Notification.permission !== status){
+                  Notification.permission = status;
+              }
+          });
+
+      }
+  });
+
+  function addNotification (data, options){
+
+        var t = new Date().toLocaleString();
+        var options={
+            dir: "ltr",
+            lang: "utf-8",
+            icon: "panda.jpg",
+            body: data.message
+        };
+        if(Notification && Notification.permission === "granted"){
+            var n = new Notification(data.username + ' ' + t, options);    
+            n.onclick = function() {
+                alert("知道就好啦");
+            };       
+            n.onerror = function() {
+                console.log("An error accured");
+            }            
+        }else if(Notification && Notification.permission !== "denied") {
+            Notification.requestPermission(function(status){
+                if(Notification.permission !== status){
+                    Notification.permission = status;
+                }
+
+                if(status === "granted"){
+                    for(var i = 0; i < 3; i++){
+                        var n = new Notification("Hi! " + i, {
+                            tag: "ulysses",
+                            icon: "panda.jpg",
+                            body: "你好呀，我是第" + i +"条消息啦！"
+                        });
+                    }
+                }
+            });
+        }else{
+            alert("Hi!");
+        }
+
   }
 
   // Prevents input from having injected markup
@@ -229,7 +281,7 @@ $(function() {
   socket.on('login', function (data) {
     connected = true;
     // Display the welcome message
-    var message = "Welcome to Socket.IO Chat – ";
+    var message = "能猫聊天室：只有两个能知道的聊天室 – ";
     log(message, {
       prepend: true
     });
